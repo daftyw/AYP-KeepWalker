@@ -1,5 +1,6 @@
 package co.binarywork.keepwalking;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -10,31 +11,44 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
-import java.util.ArrayList;
 import java.util.List;
+
+import co.binarywork.keepwalking.model.WalkingItem;
+import co.binarywork.keepwalking.model.WalkingItemLab;
 
 /**
  * Created by wind on 7/26/2016 AD.
  */
 public class KeepWalkingListFragment extends Fragment {
 
-    private RecyclerView mRecyclerView;
-    private RecyclerView.Adapter mAdapter;
+    private static final String LEFT_POSITION = "KeepWalkingListFragment.LEFT_POSITION";
+    private RecyclerView _mainRecyclerView;
+    private RecyclerView.Adapter _adapter;
+    private List<WalkingItem> _walkingItemList;
 
-    private List<WalkingItem> mWalkingItemList;
+    private Integer _leftPosition;
+
+    public static KeepWalkingListFragment newInstance() {
+        Bundle args = new Bundle();
+
+        KeepWalkingListFragment fragment = new KeepWalkingListFragment();
+        fragment.setArguments(args);
+        return fragment;
+    }
 
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View v = inflater.inflate(R.layout.fragment_list, container, false);
 
-        mRecyclerView = (RecyclerView) v.findViewById(R.id.keep_walking_recycler_view);
-        mRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
+        _mainRecyclerView = (RecyclerView) v.findViewById(R.id.keep_walking_recycler_view);
+        _mainRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
 
-        mWalkingItemList = new ArrayList<>();
-        mWalkingItemList.add(new WalkingItem("Sample #1"));
-        mWalkingItemList.add(new WalkingItem("Sample #2"));
-        mWalkingItemList.add(new WalkingItem("Sample #3"));
+        _walkingItemList = WalkingItemLab.getInstance(getActivity()).getWalkingItemList();
+
+        _walkingItemList.add(new WalkingItem("Sample #1"));
+        _walkingItemList.add(new WalkingItem("Sample #2"));
+        _walkingItemList.add(new WalkingItem("Sample #3"));
 
         updateUI();
 
@@ -42,27 +56,56 @@ public class KeepWalkingListFragment extends Fragment {
     }
 
     private void updateUI() {
-        if(mAdapter == null) {
-            mAdapter = new KWViewAdapter();
-            mRecyclerView.setAdapter(mAdapter);
+        if(_adapter == null) {
+            _adapter = new KWViewAdapter();
+            _mainRecyclerView.setAdapter(_adapter);
+        } else {
+            _adapter.notifyDataSetChanged(); // update all list in the screen
         }
     }
 
-    protected class KWViewHolder extends RecyclerView.ViewHolder {
+    @Override
+    public void onResume() {
+        super.onResume();
+        updateUI();
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+
+        outState.putInt(LEFT_POSITION, _leftPosition);
+    }
+
+    protected class KWViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
 
         TextView mTitleText;
         TextView mDateText;
+
+        Integer mPosition;
 
         public KWViewHolder(View itemView) {
             super(itemView);
 
             mTitleText = (TextView) itemView.findViewById(R.id.item_card_title);
             mDateText = (TextView) itemView.findViewById(R.id.item_card_date);
+
+            itemView.setOnClickListener(this);
         }
 
-        public void refreshViewBy(WalkingItem walkingItem) {
+        public void refreshViewBy(int currentIndex) {
+            WalkingItem walkingItem = WalkingItemLab.getInstance(getActivity()).getWalkingItem(currentIndex);
+
+            mPosition = currentIndex;
             mTitleText.setText(walkingItem.getTitle());
             mDateText.setText(walkingItem.getDate().toString());
+        }
+
+        @Override
+        public void onClick(View view) {
+            Intent intent = KWEditorActivity.newIntent(getActivity(), mPosition );
+            _leftPosition = mPosition;
+            startActivity(intent);
         }
     }
 
@@ -78,12 +121,13 @@ public class KeepWalkingListFragment extends Fragment {
 
         @Override
         public void onBindViewHolder(KWViewHolder holder, int position) {
-            holder.refreshViewBy(mWalkingItemList.get(position));
+            holder.refreshViewBy(position);
         }
 
         @Override
         public int getItemCount() {
-            return mWalkingItemList.size();
+            return _walkingItemList.size();
         }
+
     }
 }

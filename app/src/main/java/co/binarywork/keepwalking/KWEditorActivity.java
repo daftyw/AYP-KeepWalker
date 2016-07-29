@@ -7,15 +7,13 @@ import android.support.v4.app.FragmentManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 
-public class WalkingEditorActivity extends AppCompatActivity {
-
+public class KWEditorActivity extends AppCompatActivity {
 
     private static final String WALKING_ITEM = "KW.Walking.Item";
 
-    public static Intent newIntent(Context c, WalkingItem walkingItem) {
-        Intent intent = new Intent(c, WalkingEditorActivity.class);
-        intent.putExtra(WALKING_ITEM, walkingItem);
-
+    public static Intent newIntent(Context c, Integer itemIndex) {
+        Intent intent = new Intent(c, KWEditorActivity.class);
+        intent.putExtra(WALKING_ITEM, itemIndex);
         return intent;
     }
 
@@ -25,13 +23,14 @@ public class WalkingEditorActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_walking_editor);
 
-        WalkingItem walkingItem = (WalkingItem) getIntent().getSerializableExtra(WALKING_ITEM);
+        Intent intent = getIntent();
+        Integer walkingItemIndex = intent.getIntExtra(WALKING_ITEM, -1);
 
         FragmentManager fm = getSupportFragmentManager();
         Fragment f = fm.findFragmentById(R.id.walking_editor_container);
 
         if(f == null) {
-            f = KWEditorFragment.newInstance(walkingItem);
+            f = KWEditorFragment.newInstance(walkingItemIndex);
 
             fm.beginTransaction()
                     .add(R.id.walking_editor_container, f).commit();

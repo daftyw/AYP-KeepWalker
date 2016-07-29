@@ -5,6 +5,6 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:id="@+id/walking_editor_container"
-    tools:context="co.binarywork.keepwalking.WalkingEditorActivity">
+    tools:context=".KWEditorActivity">
 
 </FrameLayout>
